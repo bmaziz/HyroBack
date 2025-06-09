@@ -6,10 +6,14 @@ import java.util.List;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -50,14 +54,31 @@ public class Compagne {
     @JoinColumn(name = "dispCode")
     private Disponibilite disponibilite;
 
+    @ManyToOne
+    @JoinColumn(name = "code_type")
+    private DataType data_type;
+
+    private String nomCampagne;
     private String refCompagne;
     private String data_link;
     private int code_ref;
     private Date dateDebut;
     private Date dateFin;
+    private int nb_profil;
+    private String qc;
 
-    // ✅ Ajout de la relation avec les profils
     @OneToMany(mappedBy = "compagne", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Profil> profils;
+
+    @Override
+    public String toString() {
+        return "Compagne{" +
+                "idCampagne='" + idCampagne + '\'' +
+                ", nomCampagne='" + nomCampagne + '\'' +
+                ", dateDebut=" + dateDebut +
+                ", dateFin=" + dateFin +
+                ", nb_profil=" + nb_profil +
+                '}';
+    }
 }

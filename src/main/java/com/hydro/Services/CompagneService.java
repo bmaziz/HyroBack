@@ -114,7 +114,10 @@ public class CompagneService {
 
                 // Optionnel : tu peux les affecter dans le profil si tu veux les retourner dans le JSON
                 profil.setParametres(parametres);;
+                System.out.println(profil.getParametres());
             }
+            campagne.setProfils(profils);
+
         } else {
             System.out.println("Aucun profil associé à cette campagne.");
         }
@@ -143,14 +146,14 @@ public class CompagneService {
         sb.append(String.format("           Campagne : %s\n", c.getIdCampagne()));
         sb.append("**************************************************\n\n");
 
-        sb.append(String.format("Ref Campagne : %s\n", c.getRefCompagne()));
-        sb.append(String.format("Nom Campagne : %s\n", c.getIdCampagne()));
+        sb.append(String.format("Ref Campagne : %s\n", c.getIdCampagne()));
+        sb.append(String.format("Nom Campagne : %s\n", c.getNomCampagne()));
         sb.append(String.format("Ref Bateau : %s\n", c.getNavire() != null ? c.getNavire().getCodeNavire() + " " + c.getNavire().getNomNavire() : "N/A"));
-        sb.append(String.format("Ref Pays : %s %s\n", c.getPays() != null ? c.getPays().getNom_pays() : "N/A", c.getPays() != null ? c.getPays().getNom_pays() : "N/A"));
+        sb.append(String.format("Ref Pays : %s %s\n", c.getPays() != null ? c.getPays().getCodePays() : "N/A", c.getPays() != null ? c.getPays().getNomPays() : "N/A"));
         sb.append(String.format("Ref Laboratoire : %s\n", c.getLaboratoire() != null ? c.getLaboratoire().getLab() : "N/A"));
         sb.append(String.format("Responsable : %s\n", c.getScientifique() != null ? c.getScientifique().getNom() + " " + c.getScientifique().getPrenom() : "N/A"));
         sb.append(String.format("Ref Projet : %s\n", c.getProjet() != null ? c.getProjet().getNomProjet() : "N/A"));
-        sb.append(String.format("Nb. Profile : %d\n", c.getProfils() != null ? c.getProfils().size() : 0));
+        sb.append(String.format("Nb. Profile : %d\n", c.getNb_profil()));
 
         sb.append("\n--------------------------------------------------\n");
         sb.append("                Liste Des Profils                \n");
@@ -165,8 +168,11 @@ public class CompagneService {
             sb.append(String.format("Date et Temps : %s à %s\n", p.getDateProfil(),p.getTempsProfil()));
             sb.append(String.format("Profondeur : %s\n", p.getDepth()));
 
-            sb.append("Paramètres : DENSITY (Sigma-theta) | DISSOLVED OXYGEN | SEA PRESSURE sea surface=0 | POTENTIEL TEMPERATURE | SALINITY (PRE-1978 DEFN) | SEA TEMPERATURE | AMMONIUM (NH4-N) CONTENT | CHLOROPHYLL-A TOTAL | DEPTH BELOW SEA SURFACE | TOTAL NITROGEN (N) CONTENT | NITRATE (NO3-N) CONTENT | NITRITE (NO2-N) CONTENT | PHOSPHATE (PO4-P) CONTENT | TOTAL PHEOPHYTINE | SILICATE (SIO4-SI) CONTENT | TOTAL PHOSPHORUS (P) CONTENT | TOTAL SUSPENDED MATTER\n");
-            sb.append(String.format("Data Type : %s\n", "H10 (CTD stations)"));
+            sb.append("Paramètres :");
+            for(Parametres param:p.getParametres()) {
+            	sb.append(param.getLibelleParam()+"|");
+            }
+            sb.append(String.format("\nData Type : %s(%s)\n", c.getData_type().getCodeType(),c.getData_type().getLibelleType()));
             sb.append("--------------------------------------------------\n");
         }
 

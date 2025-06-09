@@ -8,13 +8,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.hydro.Entities.Parametres;
 import com.hydro.Entities.Profil;
+import com.hydro.Repositories.MesureRepository;
 import com.hydro.Repositories.ProfilRepository;
 @Service
 public class ProfilService {
 	@Autowired
 	 private ProfilRepository profilRepository ;
+	@Autowired
+	private MesureRepository mesureRepository;
+
 	 public List<Profil> getFilteredProfils(
+			 
 	            String region,
 	            Double latMin,
 	            Double latMax,
@@ -52,6 +58,14 @@ public class ProfilService {
 	            //        cb.equal(root.get("campagne").get("region").get("codeReg"), region));
 	      //  }
 
-	        return profilRepository.findAll(spec);
+	        List<Profil> profils = profilRepository.findAll(spec);
+
+	     // Enrichir chaque profil avec ses paramètres
+	     for (Profil profil : profils) {
+	         List<Parametres> parametres = mesureRepository.findDistinctParametresByProfilId(profil.getIdProfil());
+	         profil.setParametres(parametres);
+	     }
+
+	     return profils;
 	    }
 }

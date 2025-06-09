@@ -8,16 +8,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 public class Station {
-    @Id
-    private Integer idStation;
-    
-    @ManyToOne
-    @JoinColumn(name = "idCampagne")
-    private Compagne compagne;
-    
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer idStation;
     @ManyToOne
     @JoinColumn(name = "idProfil")
     private Profil profil;
     
-    private Integer flagStation;
+    private long flagStation;
 }

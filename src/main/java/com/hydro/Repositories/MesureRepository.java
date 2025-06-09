@@ -7,10 +7,12 @@ import org.springframework.data.repository.query.Param;
 
 import com.hydro.Entities.Mesure;
 import com.hydro.Entities.Parametres;
-import com.hydro.Entities.Profil;
 
 public interface MesureRepository extends JpaRepository<Mesure, String>{
-	@Query("SELECT DISTINCT m.codeParam FROM Mesure m WHERE m.profil.idProfil = :profil")
-	List<Parametres> findDistinctParametresByProfilId(@Param("profil") String profil);
+	@Query("SELECT DISTINCT m.codeParam FROM Mesure m WHERE m.station.profil.idProfil = :profilId")
+	List<Parametres> findDistinctParametresByProfilId(@Param("profilId") String profilId);
+	@Query("SELECT m FROM Mesure m WHERE m.station.profil.idProfil IN :idProfils")
+	List<Mesure> findMesuresByProfils(@Param("idProfils") List<String> idProfils);
 
+	
 }

@@ -20,7 +20,7 @@ public class ProfilController {
 	 @Autowired
 	    private ProfilService profilService;
 
-	    @GetMapping("/filter")
+	    @GetMapping("/filtrer")
 	    public ResponseEntity<List<Profil>> getFilteredProfils(
 	        @RequestParam(required = false) String region,
 	        @RequestParam(required = false) Double latMin,

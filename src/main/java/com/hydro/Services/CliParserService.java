@@ -22,6 +22,7 @@ public class CliParserService {
     @Autowired private CompagneRepository compagneRepository;
     @Autowired private MesureRepository mesureRepository;
     @Autowired private ParametreRepository parametreRepository;
+    @Autowired private StationRepository stationRepository;
 
     @Autowired private NavireRepository navireRepository;
     @Autowired private RegionRepository regionRepository;
@@ -33,17 +34,18 @@ public class CliParserService {
     @Autowired private DataTypeRepository dataTypeRepository;
     @Autowired private DisponibiliteRepository disponibiliteRepository;
     @Autowired private ProfilRepository profilRepository;
+    @Autowired private FlagRepository flagRepository;
 
     public void parseAndSaveCliFile(MultipartFile file) {
         try (
             InputStream inputStream = file.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-        ) {
-            // Initialisation des variables de campagne
+        ) 
+        {
             String idCompagne = "", codeSecondaire = "", navire = "", codePays = "";
             String dateDebut = "", dateFin = "", zone = "";
             String labo = "", responsable = "", projet = "", archiving = "", availability = "";
-            String typeDonnee = "", nbProfils = "", qcGlobal = "";
+            String typeDonnee = "", nbProfilsStr = "", qcGlobal = "";
             String dateStr = "";
             String timeStr = "";
             String directLat = "";
@@ -51,6 +53,10 @@ public class CliParserService {
             String depthStr="";
             String tempsProfil="";
             String idProfil="";
+            String flagStationStr="";
+            String paramFlag="";
+            int nbProfils=0;
+            int profilFlag=0;
             int degLat = 0;
             float minLat = 0;
             int degLon = 0;
@@ -58,11 +64,10 @@ public class CliParserService {
             float lat = 0;
             float lon = 0;
             float depth = 0;
-            int nbParam = 0;
             int nbParamCourant=0;
-            int lDeph = 0;
+            long flagStation=0;
 
-            Date date=null;
+
             List<String> paramCodes = new ArrayList<>();
             List<String> valuesParam = new ArrayList<>();
             String line;
@@ -71,8 +76,10 @@ public class CliParserService {
                     String[] parts = line.trim().split("\\s+");
                     idCompagne = parts[0].replace("*", "");
                     codeSecondaire = parts.length > 1 ? parts[1] : "";
+                    System.out.println(codeSecondaire);
                     if (line.contains("N/O")) {
                         navire = line.substring(line.indexOf("N/O")).trim();
+                   
                     }
 
                 } else if (line.matches("\\d{2}/\\d{2}/\\d{4}.*")) {
@@ -98,9 +105,10 @@ public class CliParserService {
 
                 } else if (line.contains("Data Type=") && line.contains("QC=")) {
                     typeDonnee = line.split("Data Type=")[1].split("n=")[0].trim();
-                    nbProfils = line.split("n=")[1].split("QC=")[0].trim();
+                    nbProfilsStr = line.split("n=")[1].split("QC=")[0].trim();
+                    nbProfils=1;
                     qcGlobal = line.split("QC=")[1].trim();
-                    saveCompagneFromCliData(idCompagne, navire, zone, labo, codePays, responsable, projet, archiving, availability, dateDebut, dateFin);
+                    saveCompagneFromCliData(idCompagne,codeSecondaire, navire, zone, labo, codePays, responsable, projet, archiving, availability, dateDebut, dateFin,typeDonnee,nbProfils,qcGlobal);
                
                 }
                 else if (line.startsWith("*TU") && line.contains("Data Type=")) {
@@ -166,65 +174,84 @@ public class CliParserService {
                     String nbParamStr = line.substring(line.indexOf("NB PARAMETERS=") + 14, line.indexOf("RECORD LINES=")).trim();
                     nbParamCourant = Integer.parseInt(nbParamStr);
                     System.out.println("NB_PARAM mis à jour : " + nbParamCourant);
-                    Compagne c=compagneRepository.findById(idCompagne) .orElseThrow(() -> new RuntimeException("compagne introuvable: "));
-                    Profil profil = new Profil();
-                    profil.setIdProfil(idProfil);
-                    profil.setCompagne(c);
-             
-                    profil.setDateProfil(Date.valueOf(convertDate2(dateStr)));
-                    profil.setTempsProfil(tempsProfil);
-                    profil.setLat(lat);
-                    profil.setLongitude(lon);
-                    profil.setDepth(depth);
-                    profil.setDeg_lat(degLat);
-                    profil.setMin_lat(minLat);
-                    profil.setDirect_lat(directLat);
-                    profil.setDeg_long(degLon);
-                    profil.setMin_long(minLon);
-                    profil.setDirect_long(directLon);
-                    profil.setNb_param(nbParam);
-                    profilRepository.save(profil);
                    
-                    System.out.println("✔ Profil ajouté : " + profil);
+                   
                     paramCodes.clear();
                     for (int i = 0; i < nbParamCourant; i++) {
                         line = reader.readLine();
                         String paramCode = line.substring(1, line.indexOf(" ")).trim();
                         paramCodes.add(paramCode);
-          
-
-                        if (paramCode.equals("DEPH")) {
-                            lDeph = i;
-                        }
+       
                     }
+                 
+                   
 
 
 
-                }else if (line.startsWith(" ")) {
+                }
+                else if(line.startsWith("*GLOBAL")) {
+                	int indexP=line.indexOf("GLOBAL PROFILE QUALITY FLAG=");
+                	int indexQC=line.indexOf("GLOBAL PARAMETERS QC FLAGS=");
+                	String profilFlagStr=line.substring(indexP+"GLOBAL PROFILE QUALITY FLAG=".length(), indexQC).trim();
+                	profilFlag=Integer.parseInt(profilFlagStr);
+                	paramFlag=line.substring(indexQC+"GLOBAL PARAMETERS QC FLAGS=".length()).trim();
+                	 Compagne c=compagneRepository.findById(idCompagne) .orElseThrow(() -> new RuntimeException("compagne introuvable: "));
+                     Profil profil = new Profil();
+                     profil.setIdProfil(idProfil);
+                     profil.setCompagne(c);
+              
+                     profil.setDateProfil(Date.valueOf(convertDate2(dateStr)));
+                     profil.setTempsProfil(tempsProfil);
+                     profil.setLat(lat);
+                     profil.setLongitude(lon);
+                     profil.setDepth(depth);
+                     profil.setDeg_lat(degLat);
+                     profil.setMin_lat(minLat);
+                     profil.setDirect_lat(directLat);
+                     profil.setDeg_long(degLon);
+                     profil.setMin_long(minLon);
+                     profil.setDirect_long(directLon);
+                     profil.setNb_param(nbParamCourant);
+                     profil.setGlobal_param_flag(paramFlag);
+                     profil.setGlobal_profil_flag(profilFlag);
+                     profilRepository.save(profil);
+                     System.out.println("✔ Profil ajouté : " + profil);
+
+				}
+                else if (line.startsWith(" ")) {
                     String l = line.trim();
 
-                    String[] tokens = l.split("\\s+"); // découpe tous les champs numériques
+                    String[] tokens = l.split("\\s+");
+                    flagStationStr=tokens[nbParamCourant];
+                    flagStation=Long.parseLong(flagStationStr);
+                    Station s=new Station();
+                    Profil p = profilRepository.findById(idProfil)
+                            .orElseThrow(() -> new RuntimeException("profil introuvable: "));
+                    s.setProfil(p);
+                    s.setFlagStation(flagStation); // conversion explicite
+                    s=stationRepository.save(s);
                     for (int i = 0; i < Math.min(tokens.length, nbParamCourant); i++) {
                     	
-                    	if(i!=lDeph) {
+                    	
                     		Mesure mesure=new Mesure();
-                    		Profil profil = profilRepository.findById(idProfil)
-                                    .orElseThrow(() -> new RuntimeException("profil introuvable: "));
+                    		
                     		Parametres parametre=parametreRepository.findById(paramCodes.get(i)) 
                     				.orElseThrow(() -> new RuntimeException("parametre introuvable: "));
                     		DataType dataType=dataTypeRepository.findById(typeDonnee)
                     				.orElseThrow(() -> new RuntimeException("dataType introuvable: "));
-                    		
+                    		Flag flag=flagRepository.findById(profilFlag)                    				
+                    				.orElseThrow(() -> new RuntimeException("flag introuvable: "));
 
 
 
-                            mesure.setProfil(profil);
+                    		mesure.setFlag(flag);
+                            mesure.setStation(s);
                             mesure.setCode_type(dataType);
                             mesure.setCodeParam(parametre);
-                            mesure.setDeph(Float.parseFloat(tokens[lDeph]));
+          
                             mesure.setValeur(Float.parseFloat(tokens[i]));
                             mesureRepository.save(mesure);
-                    	}
+                    	
                     }
 
                     System.out.println(valuesParam);
@@ -253,18 +280,25 @@ public class CliParserService {
             System.out.println("Centre Données    : " + archiving);
             System.out.println("Disponibilité     : " + availability);
             System.out.println("Type Donnée       : " + typeDonnee);
-            System.out.println("Nb Profils        : " + nbProfils);
+            System.out.println("Nb Profils        : " + nbProfilsStr);
             System.out.println("QC Global         : " + qcGlobal);
             System.out.println("==========================================");
         } catch (Exception e) {
+            e.printStackTrace(); // Pour afficher dans la console
+
             throw new RuntimeException("Erreur lors de la lecture du fichier CLI", e);
         }
     }
 
     private void saveCompagneFromCliData(
-            String idCompagne, String nomNavire, String nomRegion, String nomLabo, String codePays,
+            String idCompagne,String codeSecondaire, String nomNavire, String nomRegion, String nomLabo, String codePays,
             String nomScientifique, String nomProjet, String codeCentre, String codeDisponibilite,
-            String debut, String fin) {
+            String debut, String fin,String typeDonnee,int nbProfils,String qcGlobal) {
+
+        // 🔒 Vérifie si l'idCompagne existe déjà
+        if (compagneRepository.existsById(idCompagne)) {
+            throw new RuntimeException("❌ Campagne déjà existante avec l'ID : " + idCompagne);
+        }
 
         Compagne compagne = new Compagne();
         compagne.setIdCampagne(idCompagne);
@@ -285,7 +319,12 @@ public class CliParserService {
                 .orElseThrow(() -> new RuntimeException("Disponibilité introuvable: " + codeDisponibilite));
         Pays pays = paysRepository.findById(codePays)
                 .orElseThrow(() -> new RuntimeException("Pays introuvable: " + codePays));
-
+        DataType dataType = dataTypeRepository.findById(typeDonnee)
+        	    .orElseThrow(() -> new RuntimeException("dataType introuvable: " + typeDonnee));
+compagne.setNomCampagne(codeSecondaire);
+        compagne.setQc(qcGlobal);
+        compagne.setNb_profil(nbProfils);
+        compagne.setData_type(dataType);
         compagne.setNavire(navire);
         compagne.setRegion(region);
         compagne.setLaboratoire(laboratoire);

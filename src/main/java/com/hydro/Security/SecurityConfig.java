@@ -31,7 +31,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/parametres/**").permitAll()
                         .requestMatchers("/api/profils/**").permitAll()
                         .requestMatchers("/api/laboratoires/**").permitAll()
-                        .requestMatchers("/api/cli/upload").permitAll()  
+                        .requestMatchers("/api/permissions/**").permitAll()
+                        .requestMatchers("/api/cli/upload").permitAll()
+                        .requestMatchers("/api/datacentres/**").permitAll()
+                        .requestMatchers("/api/pays/**").permitAll()
+                        .requestMatchers("/api/projets/**").permitAll()
+                        .requestMatchers("/api/regions/**").permitAll()
+                        .requestMatchers("/api/scientifiques/**").permitAll()
+
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
   

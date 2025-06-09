@@ -1,5 +1,6 @@
 package com.hydro.Entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,9 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Pays {
 	@Id
-	private String code_pays;
-	private String nom_pays;
+	@Column(name = "code_pays")
+	private String codePays;
+	@Column(name = "nom_pays")
+    private String nomPays; 
 	
 }

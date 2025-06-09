@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 public class Parametres {
     @Id
     private String codeParam;
+    @ManyToOne
+    @JoinColumn(name="code_type")
+    private DataType data_type;
     private String libelleParam;
     private String unite;
 }

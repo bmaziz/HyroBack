@@ -9,9 +9,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -25,14 +28,16 @@ public class Profil {
     @JsonBackReference
     private Compagne compagne;
 
-    // ✅ expose uniquement l'ID de la campagne dans le JSON
     @JsonProperty("compagneId")
     public String getCompagneId() {
         return compagne != null ? compagne.getIdCampagne() : null;
     }
+
     @JsonProperty("dispCode")
     public String getdispcode() {
-        return compagne != null ? compagne.getDisponibilite().getDisp_code() : null;
+        return compagne != null && compagne.getDisponibilite() != null
+                ? compagne.getDisponibilite().getDisp_code()
+                : null;
     }
 
     private Date dateProfil;
@@ -53,8 +58,17 @@ public class Profil {
     private String direct_lat;
     private String direct_long;
     private String global_param_flag;
+
     @Transient
     private List<Parametres> parametres;
 
-
+    @Override
+    public String toString() {
+        return "Profil{" +
+                "idProfil='" + idProfil + '\'' +
+                ", lat=" + lat +
+                ", long=" + longitude +
+                ", depth=" + depth +
+                '}';
+    }
 }

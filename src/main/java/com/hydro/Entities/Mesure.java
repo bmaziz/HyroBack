@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
 	    name = "mesure",
-	    uniqueConstraints = @UniqueConstraint(columnNames = {"idProfil", "codeParam", "deph"})
+	    uniqueConstraints = @UniqueConstraint(columnNames = {"idStation", "codeParam",})
 	)
 public class Mesure {
 	@Id
@@ -21,14 +21,14 @@ public class Mesure {
     @JoinColumn(name = "codeParam")
     private Parametres codeParam;  
     @ManyToOne
-    @JoinColumn(name = "idProfil")
-    private Profil profil;
+    @JoinColumn(name = "idStation")
+    
+    private Station station;
     @ManyToOne
     @JoinColumn(name = "flag")
     private Flag flag;
     @ManyToOne
     @JoinColumn(name = "code_type")
     private DataType code_type;
-    private Float deph;
     private Float valeur;
 }
